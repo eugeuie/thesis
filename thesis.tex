@@ -1,0 +1,128 @@
+\documentclass[12pt, a4paper, oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english, russian]{babel}
+\usepackage[T1, T2A]{fontenc}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage[left=4cm,right=2cm,top=4cm,bottom=4cm,bindingoffset=0cm]{geometry}
+\tolerance=10000 % разреженность строки
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=blue,
+}
+
+\title{Thesis}
+\author{Evgenia Abdullaeva}
+\date{May 2021}
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        Филиал Московского Государственного Университета\\
+        имени М.В. Ломоносова в городе Ташкенте\\
+        \vspace{0.5cm}
+        Факультет прикладной математики и информатики\\
+        Кафедра прикладной математики и информатики\\
+        \vfill
+        Абдуллаева Евгения Гасановна\\
+        \vfill
+        \textbf{ВЫПУСКНАЯ КВАЛИФИКАЦИОННАЯ РАБОТА\\
+        на тему: «Разработка модулей оповещения и статистики для системы дистанционного обучения»}\\
+        \vspace{0.5cm}
+        по направлению 01.03.02 «Прикладная математика и информатика»
+    \end{center}
+    \vfill
+    \begin{flushleft}
+        Выпускная квалификационная работа рассмотрена и рекомендована к защите\\
+        \vspace{0.5cm}
+        Руководитель Филиала МГУ имени М.В. Ломоносова в г. Ташкенте\\
+        к.ф.-м.н., доцент Строгалов Александр Сергеевич\\
+        \vspace{0.5cm}
+        Научный руководитель\\
+        к.ф.-м.н., в.н.с. Алисейчик Павел Александрович
+    \end{flushleft}
+    \vfill
+    \begin{flushright}
+        «$\rule{1cm}{0.15mm}$» $\rule{3cm}{0.15mm}$ 2021 г.
+    \end{flushright}
+    \vfill
+    \begin{center}
+        Ташкент 2021 г.
+    \end{center}
+\end{titlepage}
+
+\begin{abstract}
+Текст аннотации
+\end{abstract}
+\selectlanguage{english}
+\begin{abstract}
+    Abstract text
+\end{abstract}
+\selectlanguage{russian}
+\setcounter{page}{2}
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Введение}
+\paragraph{} % Постановка проблемы, цель работы
+Постановка проблемы, цель работы
+\paragraph{} % Актуальность
+Актуальность
+\newpage
+
+\section{Общая структура и организация работы}
+\paragraph{}
+Настоящая работа содержит две основные части ...
+\paragraph{}
+Немного о Django
+\newpage
+
+\section{Модуль оповещения}
+\newpage
+
+\section{Модуль статистики}
+\newpage
+
+\section{Раздел помощи}
+\newpage
+
+\section{Заключение}
+\paragraph{}
+Текст заключения
+\newpage
+
+\section{Приложения}
+\newpage
+
+\section{Список использованных источников и литературы}
+\begingroup
+\renewcommand{\section}[2]{}%
+\begin{thebibliography}{20}
+    \bibitem{msu-article-1}
+    Моделирование процесса обучения / В. Б. Кудрявцев, П. А. Алисейчик, К. Вашик, Ж. Кнап, А. С. Строгалов, С. Г. Шеховцов // Интеллектуальные системы. – 2006, т. 10, вып. 1-4, стр. 189-270.
+    \bibitem{msu-article-2}
+    О дистанционном образовании – пример реализации и перспективы / П. А. Алисейчик, А. С. Строгалов, Р. А. Бекташев // Интеллектуальные системы. Теория и приложения. – 2016, т. 20, вып. 3, стр. 127-133.
+    \bibitem{msu-contest}
+    Репозиторий проекта «МГУ Контест»\\
+    \url{https://github.com/ruslanbektashev/contest}
+    \bibitem{msu-contest-site}
+    Сайт «МГУ Контест»\\
+    \url{https://contest.msu-dev.ru/}
+    \bibitem{django}
+    Документация фреймворка Django\\
+    \url{https://docs.djangoproject.com/en/3.0}
+    \bibitem{python}
+    Документация языка Python\\
+    \url{https://docs.python.org/3}
+    \bibitem{chartjs}
+    Документация инструмента Chart.js\\
+    \url{https://www.chartjs.org/docs/latest/}
+\end{thebibliography}
+\endgroup
+
+\end{document}
