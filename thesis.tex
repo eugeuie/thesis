@@ -6,6 +6,7 @@
 \usepackage{hyperref}
 \usepackage{tikz}
 \usepackage[left=4cm,right=2cm,top=4cm,bottom=4cm,bindingoffset=0cm]{geometry}
+\usepackage{indentfirst}
 \tolerance=10000 % разреженность строки
 \hypersetup{
     colorlinks=true,
@@ -78,18 +79,47 @@ The notification module implements the ability to subscribe a user to certain en
 \newpage
 
 \section{Общая структура и организация работы}
+Данная работа содержит две основные части, описанные в главах 3 и 4. В главе 3 представлено описание работы, проделанной над модулем оповещений, в главе 4 – описание работы над модулем статистики системы дистанционного обучения <<МГУ Контест>>. Система реализована с использованием фреймворка для веб-приложений Django \cite{django}, написанного на языке программирования Python \cite{python}, в связи с этим расширение функциональности системы также производится с использованием указанных технологий.
+
+В модуле статистики для реализации графического отображения собранных сведений используется инструмент Chart.js \cite{chartjs}.
 \newpage
 
 \section{Модуль оповещения}
 \subsection{Подписка на курсы и разделы}
+Персонализация оповещений о событиях на сайте требует реализации механизма подписки пользователей на определенные сущности, о состоянии которых пользователь желает получать оповещения. Поэтому для предоставления преподавателям возможности получать оповещения о новых комментариях и посылках лишь к определенным курсам и разделам была реализована подписка пользователя на курсы и разделы.
+
+На детальной странице каждого курса реализован интерфейс, доступный преподавателям, предоставляющий возможность подписаться на данный курс или отписаться от курса, а также подписаться на данный курс и все его разделы или отписаться от них. На детальной странице каждого раздела реализован интерфейс, доступный преподавателям, позволяющий подписаться на данный раздел или отписаться от него.
+
+Все пользователи имеют возможность подписаться на оповещения об объявлениях и о расписании. Такую возможность предоставляет интерфейс настройки оповещений, реализация которого описана ниже.
 \subsection{Оповещения о событиях на сайте}
+Для пользователей сайта реализована возможность получать оповещения о следующих событиях:
+\begin{itemize}
+    \item [-] о добавлении комментария к курсу, разделу, задаче или посылке – оповещения получают преподаватели, подписанные на курс или раздел, к которым написан данный комментарий, если же комментарий написан к задаче или посылке к задаче, то оповещения получают преподаватели, подписанные на раздел, включающий данную задачу;
+    \item [-] о новой посылке к задаче – оповещения получают преподаватели, подписанные на раздел, включающий задачу, к которой отправлена посылка;
+    \item [-] о публикации объявления – оповещения получают все пользователи, находящиеся в группе, которой адресовано объявление, и подписанные на оповещения об объявлениях;
+    \item [-] о добавлении расписания – оповещения получают все пользователи, подписанные на оповещения о расписании;
+    \item [-] о создании вопроса – оповещение получает преподаватель, которому адресован вопрос, при переадресации вопроса или при появлении ответа на вопрос, оповещение об этом получает пользователь, задавший данный вопрос;
+    \item [-] о сообщении об ошибке – оповещения получают администраторы сайта, при изменении статуса сообщения оповещение получает пользователь, отправивший сообщение об ошибке.
+\end{itemize}
 % \subsection{Динамическая отметка комментариев как прочтенных}
 \subsection{Список оповещений}
 \subsubsection{Бесконечная прокрутка списка оповещений}
+Для списка оповещений пользователя реализован механизм динамического раскрытия списка при прокручивании. При переходе на страницу списка оповещений отображаются лишь последние 30 полученных пользователем оповещений, при прокручивании страницы к концу отображаемого списка подгружаются следующие 30 более давних оповещений.
 \subsubsection{Динамическая отметка оповещений как прочтенных}
+В списке оповещений еще не прочтенные пользователем оповещения помечаются специальным цветом. При их просмотре в списке, то есть при нахождении таких оповещений в области видимости пользователя, они динамически помечаются как прочтенные, а также динамически обновляется значение счетчика непрочтенных оповещений. При просмотре объектов непрочтенных оповещений, например, комментария или объявления, о добавлении которых были получены данные оповещения, данные оповещения также помечаются как прочтенные.
 \subsection{Интерфейс настройки оповещений}
 \subsubsection{Выбор получаемых оповещений}
+Пользователям предоставляется возможность выбора типов получаемых оповещений. Для этого реализован интерфейс настройки оповещений, где пользователь может отметить некоторые из следующих пунктов:
+\begin{itemize}
+    \item [-] объявления – доступен всем пользователям;
+    \item [-] расписание – доступен всем пользователям;
+    \item [-] комментарии – доступен преподавателям;
+    \item [-] посылки – доступен преподавателям.
+\end{itemize}
+
+При подписке на оповещения о комментариях или посылках при отсутствии у пользователя подписок на курсы или разделы, пользователь подписывается на все курсы и разделы. При отписке от оповещений о комментариях и посылках пользователь, соответственно, отписывается от всех курсов и разделов.
 \subsubsection{Список подписок на курсы и разделы}
+Интерфейс настройки оповещений включает также интерактивный список курсов и разделов, на которые подписан пользователь. Данный раздел интерфейса настройки оповещений реализован так, что по нажатию на элемент списка (курс или раздел) пользователь имеет возможность отписаться от выбранного курса или раздела. Список доступен преподавателям.
 \newpage
 
 \section{Модуль статистики}
@@ -109,11 +139,97 @@ The notification module implements the ability to subscribe a user to certain en
 \newpage
 
 \section{Заключение}
-\paragraph{}
+В рамках настоящей работы был реализован модуль оповещения пользователей и модуль статистики для системы дистанционного обучения <<МГУ Контест>>, а также усовершенствован раздел помощи пользователям системы. Таким образом была расширена функциональность системы дистанционного обучения <<МГУ Контест>>.
 \newpage
 
 \section{Приложения}
-\subsection{Приложение A}
+\subsection{Модель подписки}
+\begin{verbatim}
+class SubscriptionManager(models.Manager):
+    def make_subscription(self, user, object, cascade=False):
+        Course = apps.get_model('contests', 'Course')
+        Contest = apps.get_model('contests', 'Contest')
+        Submission = apps.get_model('contests', 'Submission')
+        Subscription(object=object, user=user).save()
+        if isinstance(object, Course) and cascade:
+            subscribed_contest_ids = \
+                Subscription.objects.for_user_model(user, Contest) \
+                    .values_list('object_id', flat=True)
+            new_contest_ids = \
+                Contest.objects.filter(course=object) \
+                    .exclude(id__in=subscribed_contest_ids) \
+                        .values_list('id', flat=True)
+            contest_subscriptions = (Subscription(
+                    object_type=ContentType.objects.get_for_model(Contest), 
+                    object_id=contest_id, user=user
+                ) for contest_id in new_contest_ids)
+            Subscription.objects.bulk_create(contest_subscriptions)
+        if isinstance(object, (Course, Contest)):
+            if not Subscription.objects. \
+                for_user_models(user, Comment, Submission).exists():
+                Subscription(object_type=ContentType.objects. \
+                    get_for_model(model=Comment), user=user).save()
+                Subscription(object_type=ContentType.objects. \
+                    get_for_model(model=Submission), user=user).save()
+    
+    def delete_subscription(self, user, object, cascade=False):
+        Course = apps.get_model('contests', 'Course')
+        Contest = apps.get_model('contests', 'Contest')
+        Submission = apps.get_model('contests', 'Submission')
+        Subscription.objects.for_user_object(user, object).delete()
+        if isinstance(object, Course) and cascade:
+            course_contest_ids = \
+                Contest.objects.filter(course=object) \
+                    .values_list('id', flat=True)
+            Subscription.objects.for_user_model(user, Contest) \
+                .filter(object_id__in=course_contest_ids).delete()
+        if not Subscription.objects \
+            .for_user_models(user, Course, Contest).exists():
+            Subscription.objects \
+                .for_user_models(user, Comment, Submission).delete()
+
+class SubscriptionQuerySet(models.QuerySet):
+    def for_user_model(self, user, model):
+        return self.filter(user=user, 
+            object_type=ContentType.objects.get_for_model(model))
+
+    def for_user_models(self, user, *models):
+        return self.filter(user=user, 
+            object_type__in=ContentType.objects \
+                .get_for_models(*models).values())
+    
+    def for_user_object(self, user, object):
+        return self.filter(user=user, 
+            object_type=ContentType.objects \
+                .get_for_model(object._meta.model),
+            object_id=object.id)
+
+class Subscription(models.Model):
+    object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    object = GenericForeignKey(ct_field='object_type')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    objects = SubscriptionManager.from_queryset(SubscriptionQuerySet)()
+
+    class Meta:
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+        unique_together = ('user', 'object_type', 'object_id')
+
+    def validate_unique(self, exclude=None):
+        if Subscription.objects.exclude(id=self.id).filter(
+            user=self.user, 
+            object_type=self.object_type, 
+            object_id__isnull=True).exists():
+            raise ValidationError("Подписка с такими значениями полей \
+                User, Object type и Object id уже существует.")
+        super().validate_unique(exclude)
+
+    def __str__(self):
+        return '%s, %s%s' % (self.user.account.get_full_name(), 
+            self.object_type.model,
+            ': ' + self.object.title if self.object_id is not None else '')
+\end{verbatim}
 \newpage
 
 \section{Список использованных источников и литературы}
@@ -127,9 +243,6 @@ The notification module implements the ability to subscribe a user to certain en
     \bibitem{msu-contest}
     Репозиторий проекта <<МГУ Контест>>\\
     \url{https://github.com/ruslanbektashev/contest}
-    \bibitem{msu-contest-site}
-    Сайт <<МГУ Контест>>\\
-    \url{https://contest.msu-dev.ru/}
     \bibitem{django}
     Документация фреймворка Django\\
     \url{https://docs.djangoproject.com/en/3.0}
