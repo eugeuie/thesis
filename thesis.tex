@@ -186,7 +186,12 @@ $$A=\frac{1}{n}\sum_{i=1}^{n}A_i.$$
 \newpage
 
 \section{Приложения}
-\subsection{Модель подписки}
+В данном разделе приведены реализации некоторых ключевых усовершенствований, внедренных в систему <<МГУ Контест>> в рамках настоящей работы.
+
+Полный список изменений, внесенных в код проекта <<МГУ Контест>> в рамках данной работы можно увидеть в репозитории проекта по следующей ссылке:\\
+\url{https://github.com/ruslanbektashev/contest/commits?author=eugeuie}
+\subsection{Модуль оповещения}
+\subsubsection{Модель подписки}
 \begin{verbatim}
 class SubscriptionManager(models.Manager):
     def make_subscription(self, user, object, cascade=False):
@@ -214,7 +219,7 @@ class SubscriptionManager(models.Manager):
                     get_for_model(model=Comment), user=user).save()
                 Subscription(object_type=ContentType.objects. \
                     get_for_model(model=Submission), user=user).save()
-    
+
     def delete_subscription(self, user, object, cascade=False):
         Course = apps.get_model('contests', 'Course')
         Contest = apps.get_model('contests', 'Contest')
@@ -231,6 +236,7 @@ class SubscriptionManager(models.Manager):
             Subscription.objects \
                 .for_user_models(user, Comment, Submission).delete()
 
+
 class SubscriptionQuerySet(models.QuerySet):
     def for_user_model(self, user, model):
         return self.filter(user=user, 
@@ -246,6 +252,7 @@ class SubscriptionQuerySet(models.QuerySet):
             object_type=ContentType.objects \
                 .get_for_model(object._meta.model),
             object_id=object.id)
+
 
 class Subscription(models.Model):
     object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -272,6 +279,239 @@ class Subscription(models.Model):
         return '%s, %s%s' % (self.user.account.get_full_name(), 
             self.object_type.model,
             ': ' + self.object.title if self.object_id is not None else '')
+\end{verbatim}
+\subsubsection{Динамическая отметка оповещений как прочтенных}
+\begin{verbatim}
+class ReadWatcher {
+    constructor(marker_url) {
+        this.mark_activities_as_read_url = marker_url;
+        this.activities = document.getElementById('activities');
+        this.unread_activities_ids = [];
+        this.options = { 
+            method: 'POST',
+            headers: { 'ContentType': 'application/json' },
+            cache: 'no-store' 
+        }
+    }
+
+    updateUnreadCounterBadge() {
+        let unread_activities_count_element = 
+            document.getElementById('unread_activities_count');
+        let updated_count = 
+            parseInt(unread_activities_count_element.innerText) 
+                - this.unread_activities_ids.length;
+        if (updated_count > 0)
+            unread_activities_count_element.innerText = 
+                updated_count.toString();
+        else
+            unread_activities_count_element.remove();
+    }
+
+    markActivitiesAsRead() {
+        if (this.unread_activities_ids.length > 0) {
+            this.options['body'] = JSON.stringify({
+                unread_activities_ids: this.unread_activities_ids 
+            });
+            this.updateUnreadCounterBadge();
+            this.unread_activities_ids = [];
+            fetch(this.mark_activities_as_read_url, 
+                this.options).then(response => {});
+        }
+        setTimeout(this.markActivitiesAsRead.bind(this), 1000);
+    }
+
+    isInViewPoint(element) {
+        let bounding = element.getBoundingClientRect();
+        return (bounding.top >= 0 && bounding.left >= 0 &&
+                bounding.bottom <= (window.innerHeight 
+                    || document.documentElement.clientHeight) &&
+                bounding.right <= (window.innerWidth 
+                    || document.documentElement.clientWidth));
+    }
+
+    handleEvent(event) {
+        for(let activity of this.activities.children) {
+            let is_unread = JSON.parse(activity.getAttribute('data-unread'));
+            if (is_unread) {
+                let activity_id = parseInt(activity.getAttribute('data-id'));
+                let activity_body = 
+                    activity.getElementsByClassName('activity-body')[0];
+                if (this.isInViewPoint(activity_body) 
+                    && !this.unread_activities_ids.includes(activity_id)) {
+                    activity.classList.remove('bg-light');
+                    activity.removeAttribute('data-unread');
+                    this.unread_activities_ids.push(activity_id);
+                }
+            }
+        }
+    }
+}    
+\end{verbatim}
+\subsubsection{Представление интерфейса настройки оповещений}
+\begin{verbatim}
+class ManageSubscriptions(LoginRequiredMixin, FormView):
+    form_class = ManageSubscriptionsForm
+    template_name = 'accounts/activity/activity_settings.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['object_type'] = list(self.request.user \
+            .subscription_set.values_list('object_type', flat=True))
+        return initial
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_ids = self.request.user.subscription_set \
+            .filter(object_type=ContentType.objects.get_for_model(Course)) \
+                .values_list('object_id', flat=True)
+        context['all_courses'] = Course.objects.all()
+        context['courses'] = Course.objects.filter(id__in=course_ids)
+        contest_ids = self.request.user.subscription_set \
+            .filter(object_type=ContentType.objects.get_for_model(Contest)) \
+                .values_list('object_id', flat=True)
+        context['contests'] = Contest.objects.filter(id__in=contest_ids)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            user = self.request.user
+            choices = form.fields['object_type'].choices
+            data = form.cleaned_data['object_type']
+            
+            user.subscription_set.filter(object_type__in=choices) \
+                .exclude(object_type__in=data).delete()
+            
+            new_object_type_ids = set(map(int, data)) \
+                 - set(user.subscription_set \
+                     .values_list('object_type', flat=True))
+            new_subscriptions = (Subscription(object_type= \
+                ContentType.objects.get(id=i), user=user) 
+                    for i in new_object_type_ids)
+            Subscription.objects.bulk_create(new_subscriptions)
+
+            if not Subscription.objects \
+                .for_user_models(user, Comment, Submission).exists():
+                Subscription.objects.for_user_models(user, Course, Contest) \
+                    .delete()
+            elif not Subscription.objects \
+                .for_user_models(user, Course, Contest).exists():
+                for course in Course.objects.all():
+                    Subscription.objects \
+                        .make_subscription(user, object=course, cascade=True)
+
+            return self.form_valid(form)
+        return self.form_invalid(form)
+    
+    def get_success_url(self):
+        return reverse('accounts:activity-settings')
+\end{verbatim}
+\subsection{Модуль статистики}
+\subsubsection{Диаграмма активности студента}
+\begin{verbatim}
+const submissionsChartData = {
+    labels: [{% for item in year_month_submissions_solutions_comments %}
+        '{{ item.1 }} {{item.0}}', {% endfor %}],
+    datasets: [{
+        label: 'Посылки',
+        backgroundColor: 'rgb(0, 123, 255)',
+        borderColor: 'rgb(0, 123, 255)',
+        data: [{% for item in year_month_submissions_solutions_comments %}
+            {{ item.2 }}, {% endfor %}],
+    }, {
+        label: 'Решения',
+        backgroundColor: 'rgb(40, 167, 69)',
+        borderColor: 'rgb(40, 167, 69)',
+        data: [{% for item in year_month_submissions_solutions_comments %}
+            {{ item.3 }}, {% endfor %}],
+    }, {
+        label: 'Комментарии',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: [{% for item in year_month_submissions_solutions_comments %}
+            {{ item.4 }}, {% endfor %}],
+    }]
+};
+const submissionsChartConfig = {
+    type: 'bar',
+    data: submissionsChartData,
+    options: {
+        scales: {
+            y: {
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+};
+var submissionsChart = new Chart(
+    document.getElementById('submissionsChart'),
+    submissionsChartConfig
+);
+\end{verbatim}
+\subsubsection{Подсчет точности студента}
+\begin{verbatim}
+def course_submissions_score(self, course_id=None):
+    Submission = apps.get_model('contests', 'Submission')
+    Assignment = apps.get_model('contests', 'Assignment')
+    submissions = Submission.objects.filter(owner=self.user)
+    if course_id:
+        submissions = \
+            submissions.filter(problem__contest__course=course_id)
+    problem_ids = submissions.values_list('problem', flat=True) \
+        .distinct().order_by()
+    submissions_scores = []
+    for problem_id in problem_ids:
+        problem_submissions = \ 
+        Submission.objects.filter(owner=self.user, problem=problem_id)
+        success_submissions = problem_submissions.filter(status='OK')
+        if success_submissions.exists():
+            first_success_submission = \ 
+            success_submissions.order_by('date_created')[0]
+            submissions_count = problem_submissions \
+                .filter(date_created__lte= \
+                    first_success_submission.date_created).count()
+        else:
+            submissions_count = problem_submissions.count() + 1
+        assignment = problem_submissions.first().assignment
+        submission_limit = assignment.submission_limit \
+            if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
+        submissions_score = 100 \
+            / math.ceil(submissions_count / submission_limit)
+        submissions_scores.append(submissions_score)
+    return round(mean(submissions_scores)) if submissions_scores else 0
+\end{verbatim}
+\subsection{Представление раздела помощи пользователям}
+\begin{verbatim}
+class Support(LoginRequiredMixin, ListView):
+    model = Question
+    template_name = 'support/index.html'
+    context_object_name = 'questions'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        reports = Report.objects.filter(closed=False) \
+            if self.request.user.has_perm('support.change_report') \
+                else Report.objects \
+                    .filter(Q(owner=self.request.user) & Q(closed=False))
+        context.update({
+            'reports': sorted(reports, 
+                key=attrgetter('date_created'), reverse=True)
+        })
+        return context
+
+    def get_queryset(self):
+        questions = Question.objects.filter(answer='') \
+            if self.request.user.has_perm('support.change_question') \
+                else Question.objects.filter(Q(is_published=True) \
+                    | Q(owner=self.request.user))[:5]
+        return questions
 \end{verbatim}
 \newpage
 
