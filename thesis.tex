@@ -7,6 +7,7 @@
 \usepackage[left=4cm,right=2cm,top=4cm,bottom=4cm,bindingoffset=0cm]{geometry}
 \usepackage{indentfirst}
 \usepackage{graphicx}
+\usepackage{enumitem}
 \graphicspath{ {./images/} }
 \tolerance=10000 % разреженность строки
 \linespread{1.3} % интерлиньяж
@@ -86,12 +87,14 @@ The notification module implements the ability to subscribe a user to certain en
 \section{Общая структура и организация работы}
 Данная работа содержит две основные части, описанные в главах 3 и 4. В главе 3 представлено описание работы, проделанной над модулем оповещений, в главе 4 – описание работы над модулем статистики системы дистанционного обучения <<МГУ Контест>>. Система реализована с использованием фреймворка для веб-приложений Django \cite{django}, написанного на языке программирования Python \cite{python}, в связи с этим расширение функциональности системы также производится с использованием указанных технологий.
 
-В модуле статистики для реализации графического отображения собранных сведений используется инструмент Chart.js \cite{chartjs}.
+Django использует шаблон проектирования Model-View-Controller – схему разделения данных приложения, пользовательского интерфейса и управляющей логики на три отдельных компонента: модель, представление и контроллер, соответственно.
+
+Интерактивные элементы интерфейса пользователя реализованы на языке программирования JavaScript \cite{js}. В модуле статистики для реализации графического отображения собранных сведений используется инструмент Chart.js \cite{chartjs}.
 \newpage
 
 \section{Модуль оповещения}
 \subsection{Подписка на оповещения}
-Персонализация оповещений о событиях на сайте требует реализации механизма подписки пользователей на определенные сущности, о состоянии которых пользователь желает получать оповещения. Поэтому для предоставления преподавателям возможности получать оповещения о новых комментариях и посылках лишь к определенным курсам и разделам была реализована подписка пользователя на курсы и разделы.
+Персонализация оповещений о событиях на сайте требует реализации механизма подписки пользователей на определенные сущности, о состоянии которых пользователь желает получать оповещения. Поэтому для предоставления преподавателям возможности получать оповещения о новых комментариях и посылках лишь к определенным курсам и разделам была реализована подписка пользователя на курсы и разделы. Реализация модели для сущности <<Подписка>> приведена в приложении (\ref{code:subscription}).
 
 На детальной странице каждого курса реализован интерфейс, доступный преподавателям, предоставляющий возможность подписаться на данный курс или отписаться от курса, а также подписаться на данный курс и все его разделы или отписаться от них. На детальной странице каждого раздела реализован интерфейс, доступный преподавателям, позволяющий подписаться на данный раздел или отписаться от него.
 
@@ -99,7 +102,7 @@ The notification module implements the ability to subscribe a user to certain en
 \subsection{Оповещения о событиях на сайте}
 Для пользователей сайта реализована возможность получать оповещения о следующих событиях:
 \begin{itemize}
-    \item [-] о добавлении комментария к курсу, разделу, задаче или посылке – оповещения получают преподаватели, подписанные на курс или раздел, к которым написан данный комментарий, если же комментарий написан к задаче или посылке к задаче, то оповещения получают преподаватели, подписанные на раздел, включающий данную задачу;
+    \item [-] о добавлении комментария к курсу, разделу, задаче или посылке – оповещения получают преподаватели, подписанные на курс или раздел, к которым написан данный комментарий, если же комментарий написан к задаче или посылке к задаче, то оповещения получают преподаватели, подписанные на раздел, включающий данную задачу; реализация оповещения о комментариях приведена в приложении (\ref{code:comment-notification});
     \item [-] о новой посылке к задаче – оповещения получают преподаватели, подписанные на раздел, включающий задачу, к которой отправлена посылка;
     \item [-] о публикации объявления – оповещения получают все пользователи, находящиеся в группе, которой адресовано объявление, и подписанные на оповещения об объявлениях;
     \item [-] о добавлении расписания – оповещения получают все пользователи, подписанные на оповещения о расписании;
@@ -111,7 +114,7 @@ The notification module implements the ability to subscribe a user to certain en
 \subsubsection{Бесконечная прокрутка списка оповещений}
 Для списка оповещений пользователя реализован механизм динамического раскрытия списка при прокручивании. При переходе на страницу списка оповещений отображаются лишь последние 30 полученных пользователем оповещений, при прокручивании страницы к концу отображаемого списка подгружаются следующие 30 более давних оповещений.
 \subsubsection{Динамическая отметка оповещений как прочтенных}
-В списке оповещений еще не прочтенные пользователем оповещения помечаются специальным цветом. При их просмотре в списке, то есть при нахождении таких оповещений в области видимости пользователя, они динамически помечаются как прочтенные, а также динамически обновляется значение счетчика непрочтенных оповещений. При просмотре объектов непрочтенных оповещений, например, комментария или объявления, о добавлении которых были получены данные оповещения, данные оповещения также помечаются как прочтенные.
+В списке оповещений еще не прочтенные пользователем оповещения помечаются специальным цветом. При их просмотре в списке, то есть при нахождении таких оповещений в области видимости пользователя, они динамически помечаются как прочтенные, а также динамически обновляется значение счетчика непрочтенных оповещений. При просмотре объектов непрочтенных оповещений, например, комментария или объявления, о добавлении которых были получены данные оповещения, данные оповещения также помечаются как прочтенные. Реализация динамической отметки оповещений как прочтенных приведена в приложении (\ref{code:mark-activities-as-read}).
 \subsection{Интерфейс настройки оповещений}
 \subsubsection{Выбор типов получаемых оповещений}
 \begin{center}
@@ -126,7 +129,7 @@ The notification module implements the ability to subscribe a user to certain en
     \item [-] посылки – доступен преподавателям.
 \end{itemize}
 
-При подписке на оповещения о комментариях или посылках при отсутствии у пользователя подписок на курсы или разделы, пользователь подписывается на все курсы и разделы. При отписке от оповещений о комментариях и посылках пользователь, соответственно, отписывается от всех курсов и разделов.
+При подписке на оповещения о комментариях или посылках при отсутствии у пользователя подписок на курсы или разделы, пользователь подписывается на все курсы и разделы. При отписке от оповещений о комментариях и посылках пользователь, соответственно, отписывается от всех курсов и разделов. Реализация представления интерфейса настройки оповещений приведена в приложении (\ref{code:activity-settings-view}).
 \subsubsection{Список подписок на курсы и разделы}
 \begin{center}
     \includegraphics[scale=0.45]{courses-contests-subscriptions}
@@ -144,7 +147,7 @@ The notification module implements the ability to subscribe a user to certain en
     \includegraphics[scale=0.4]{account-activity}
 \end{center}
 
-Реализовано отображение сведений об активности студента в виде столбчатой диаграммы, где по месяцам указаны количество посылок, сделанных студентом, количество решенных задач и количество комментариев. Имеется возможность выбрать для просмотра определенный учебный год или все время.
+Реализовано отображение сведений об активности студента в виде столбчатой диаграммы, где по месяцам указаны количество посылок, сделанных студентом, количество решенных задач и количество комментариев. Имеется возможность выбрать для просмотра определенный учебный год или все время. Реализация диаграммы активности студента с помощью Chart.js приведена в приложении (\ref{code:diagram})
 
 Также в сведениях об активности студента отображается общее количество решенных задач, посылок и комментариев студента.
 \subsubsection{Результаты курсов}
@@ -162,6 +165,8 @@ $$A=\frac{1}{n}\sum_{i=1}^{n}A_i.$$
 Точность студента по отдельному курсу рассчитывается аналогично на основании количества посылок до первой успешной к каждой из задач данного курса.
 
 Точность профиле студента отображается в процентах в виде шкалы прогресса.
+
+Реализация метода подсчета точности студента приведена в приложении (\ref{code:accuracy})
 \subsection{Рейтинг студентов}
 На основании общей успеваемости студентов реализовано отображение рейтинга студентов указанного уровня, всех студентов, выпускников и отчисленных студентов. На основании успеваемости студентов по отдельным курсам реализовано отображение рейтинга студентов указанного уровня, всех студентов, выпускников и отчисленных студентов по данным курсам.
 
@@ -182,6 +187,8 @@ $$A=\frac{1}{n}\sum_{i=1}^{n}A_i.$$
 В разделе помощи модели вопроса добавлено необязательное поле адресата для предоставления пользователям возможности задать вопрос конкретному преподавателю, соответственно переработана форма создания вопроса.
 
 Реализована основная страница раздела помощи пользователям. На рассматриваемой странице для студента в виде карточек отображается список из пяти наиболее новых опубликованных или заданных данным студентом вопросов и список сообщений об ошибках со статусом <<открыто>>, отправленных данным студентом; также на этой странице присутствуют ссылки в виде кнопок, позволяющие задать вопрос, отправить сообщение об ошибке, перейти к списку всех опубликованных или заданных этим студентом вопросов или списку всех отправленных студентом сообщений об ошибках. Для преподавателя и администратора на странице в виде карточек отображается список вопросов, у которых пока отсутствует ответ и список сообщений об ошибках со статусом <<открыто>>; также на этой странице присутствуют ссылки в виде кнопок, позволяющие задать вопрос, отправить сообщение об ошибке, перейти к списку всех вопросов или списку всех сообщений об ошибках.
+
+Реализация представления раздела помощи пользователям приведена в приложении (\ref{code:support}).
 \newpage
 
 \section{Заключение}
@@ -189,79 +196,22 @@ $$A=\frac{1}{n}\sum_{i=1}^{n}A_i.$$
 \newpage
 
 \section{Приложения}
-В данном разделе приведены реализации некоторых ключевых усовершенствований, внедренных в систему <<МГУ Контест>> в рамках настоящей работы.
+В данном разделе приведены реализации некоторых ключевых усовершенствований, внедренных в систему <<МГУ Контест>> в рамках настоящей работы. Полный список изменений, внесенных в код проекта <<МГУ Контест>> в рамках данной работы можно увидеть в репозитории проекта по ссылке \cite{msu-contest-commits}.
 
-Полный список изменений, внесенных в код проекта <<МГУ Контест>> в рамках данной работы можно увидеть в репозитории проекта по ссылке \cite{msu-contest-commits}.
-\subsection{Модуль оповещения}
-\subsubsection{Модель подписки}
-\begin{verbatim}
-class SubscriptionManager(models.Manager):
-    def make_subscription(self, user, object, cascade=False):
-        Course = apps.get_model('contests', 'Course')
-        Contest = apps.get_model('contests', 'Contest')
-        Submission = apps.get_model('contests', 'Submission')
-        Subscription(object=object, user=user).save()
-        if isinstance(object, Course) and cascade:
-            subscribed_contest_ids = \
-                Subscription.objects.for_user_model(user, Contest) \
-                    .values_list('object_id', flat=True)
-            new_contest_ids = \
-                Contest.objects.filter(course=object) \
-                    .exclude(id__in=subscribed_contest_ids) \
-                        .values_list('id', flat=True)
-            contest_subscriptions = (Subscription(
-                    object_type=ContentType.objects.get_for_model(Contest), 
-                    object_id=contest_id, user=user
-                ) for contest_id in new_contest_ids)
-            Subscription.objects.bulk_create(contest_subscriptions)
-        if isinstance(object, (Course, Contest)):
-            if not Subscription.objects. \
-                for_user_models(user, Comment, Submission).exists():
-                Subscription(object_type=ContentType.objects. \
-                    get_for_model(model=Comment), user=user).save()
-                Subscription(object_type=ContentType.objects. \
-                    get_for_model(model=Submission), user=user).save()
-
-    def delete_subscription(self, user, object, cascade=False):
-        Course = apps.get_model('contests', 'Course')
-        Contest = apps.get_model('contests', 'Contest')
-        Submission = apps.get_model('contests', 'Submission')
-        Subscription.objects.for_user_object(user, object).delete()
-        if isinstance(object, Course) and cascade:
-            course_contest_ids = \
-                Contest.objects.filter(course=object) \
-                    .values_list('id', flat=True)
-            Subscription.objects.for_user_model(user, Contest) \
-                .filter(object_id__in=course_contest_ids).delete()
-        if not Subscription.objects \
-            .for_user_models(user, Course, Contest).exists():
-            Subscription.objects \
-                .for_user_models(user, Comment, Submission).delete()
-
-
-class SubscriptionQuerySet(models.QuerySet):
-    def for_user_model(self, user, model):
-        return self.filter(user=user, 
-            object_type=ContentType.objects.get_for_model(model))
-
-    def for_user_models(self, user, *models):
-        return self.filter(user=user, 
-            object_type__in=ContentType.objects \
-                .get_for_models(*models).values())
-    
-    def for_user_object(self, user, object):
-        return self.filter(user=user, 
-            object_type=ContentType.objects \
-                .get_for_model(object._meta.model),
-            object_id=object.id)
-
-
+\begin{enumerate}[wide, labelindent=0pt]
+    \item {
+        Реализация модели для сущности <<Подписка>>:\label{code:subscription}
+        \begin{verbatim}
 class Subscription(models.Model):
-    object_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_type = models.ForeignKey(ContentType, 
+                                    on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     object = GenericForeignKey(ct_field='object_type')
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    objects = SubscriptionManager.from_queryset(SubscriptionQuerySet)()
+
+    objects = 
+        SubscriptionManager.from_queryset(SubscriptionQuerySet)()
 
     class Meta:
         verbose_name = "Подписка"
@@ -273,35 +223,74 @@ class Subscription(models.Model):
             user=self.user, 
             object_type=self.object_type, 
             object_id__isnull=True).exists():
-            raise ValidationError("Подписка с такими значениями полей \
-                User, Object type и Object id уже существует.")
+            raise ValidationError("Подписка с такими значениями 
+                полей User, Object type 
+                и Object id уже существует.")
         super().validate_unique(exclude)
 
     def __str__(self):
         return '%s, %s%s' % (self.user.account.get_full_name(), 
-            self.object_type.model,
-            ': ' + self.object.title if self.object_id is not None else '')
-\end{verbatim}
-\subsubsection{Динамическая отметка оповещений как прочтенных}
-\begin{verbatim}
+            self.object_type.model, ': ' + self.object.title 
+            if self.object_id is not None else '')
+        \end{verbatim}
+    }
+    \item {
+        Реализация метода для оповещения пользователей о новых комментариях. Данный метод вызывается при сохранении комментария, является методом модели Comment, соответствующей сущности <<Комментарий>>.\label{code:comment-notification}
+        \begin{verbatim}
+def _notify_users(self, created=False):
+    comment_subscribers_ids = Subscription.objects.filter(
+            object_type=ContentType.objects.get(
+                model='comment'
+        )).values_list('user', flat=True)
+    parent_object_subscribers_ids = 
+        self.parent_object.subscription_set.values_list(
+            'user_id', 
+            flat=True)
+    user_ids = list(set(comment_subscribers_ids) & 
+        set(parent_object_subscribers_ids))
+    if self.object.owner_id not in user_ids:
+        user_ids_set = set(user_ids)
+        user_ids_set.add(self.object.owner_id)
+        user_ids = list(user_ids_set)
+    action = "оставил комментарий" if created 
+        else "изменил комментарий"
+    if self.id != self.parent_id:
+        user = Comment.objects.get(id=self.parent_id).author
+        Activity.objects.notify_user(
+            user, 
+            subject=self.author, 
+            action="ответил на ваш комментарий", 
+            object=self, 
+            reference=self.object)
+        if user.id in user_ids:
+            user_ids.remove(user.id)
+    Activity.objects.notify_users(
+        user_ids, 
+        subject=self.author, 
+        action=action, 
+        object=self, 
+        reference=self.object)
+        \end{verbatim}
+    }
+    \item {
+        Реализация динамической отметки оповещений как прочтенных при просмотре:\label{code:mark-activities-as-read}
+        \begin{verbatim}
 class ReadWatcher {
     constructor(marker_url) {
         this.mark_activities_as_read_url = marker_url;
         this.activities = document.getElementById('activities');
         this.unread_activities_ids = [];
-        this.options = { 
-            method: 'POST',
-            headers: { 'ContentType': 'application/json' },
-            cache: 'no-store' 
-        }
+        this.options = {method: 'POST', 
+            headers: { 'ContentType': 'application/json' }, 
+            cache: 'no-store' }
     }
 
     updateUnreadCounterBadge() {
         let unread_activities_count_element = 
             document.getElementById('unread_activities_count');
         let updated_count = 
-            parseInt(unread_activities_count_element.innerText) 
-                - this.unread_activities_ids.length;
+            parseInt(unread_activities_count_element.innerText) - 
+                this.unread_activities_ids.length;
         if (updated_count > 0)
             unread_activities_count_element.innerText = 
                 updated_count.toString();
@@ -311,9 +300,9 @@ class ReadWatcher {
 
     markActivitiesAsRead() {
         if (this.unread_activities_ids.length > 0) {
-            this.options['body'] = JSON.stringify({
-                unread_activities_ids: this.unread_activities_ids 
-            });
+            this.options['body'] = 
+                JSON.stringify({unread_activities_ids: 
+                    this.unread_activities_ids });
             this.updateUnreadCounterBadge();
             this.unread_activities_ids = [];
             fetch(this.mark_activities_as_read_url, 
@@ -325,21 +314,25 @@ class ReadWatcher {
     isInViewPoint(element) {
         let bounding = element.getBoundingClientRect();
         return (bounding.top >= 0 && bounding.left >= 0 &&
-                bounding.bottom <= (window.innerHeight 
-                    || document.documentElement.clientHeight) &&
-                bounding.right <= (window.innerWidth 
-                    || document.documentElement.clientWidth));
+                bounding.bottom <= (window.innerHeight || 
+                    document.documentElement.clientHeight) &&
+                bounding.right <= (window.innerWidth || 
+                    document.documentElement.clientWidth));
     }
 
     handleEvent(event) {
         for(let activity of this.activities.children) {
-            let is_unread = JSON.parse(activity.getAttribute('data-unread'));
+            let is_unread = 
+                JSON.parse(activity.getAttribute('data-unread'));
             if (is_unread) {
-                let activity_id = parseInt(activity.getAttribute('data-id'));
+                let activity_id = 
+                    parseInt(activity.getAttribute('data-id'));
                 let activity_body = 
-                    activity.getElementsByClassName('activity-body')[0];
-                if (this.isInViewPoint(activity_body) 
-                    && !this.unread_activities_ids.includes(activity_id)) {
+                    activity.getElementsByClassName(
+                        'activity-body')[0];
+                if (this.isInViewPoint(activity_body) && 
+                    !this.unread_activities_ids.includes(
+                        activity_id)) {
                     activity.classList.remove('bg-light');
                     activity.removeAttribute('data-unread');
                     this.unread_activities_ids.push(activity_id);
@@ -347,18 +340,22 @@ class ReadWatcher {
             }
         }
     }
-}    
-\end{verbatim}
-\subsubsection{Представление интерфейса настройки оповещений}
-\begin{verbatim}
+}            
+        \end{verbatim}
+    }
+    \item {
+        Реализация представления интерфейса настройки оповещений: \label{code:activity-settings-view}
+        \begin{verbatim}
 class ManageSubscriptions(LoginRequiredMixin, FormView):
     form_class = ManageSubscriptionsForm
     template_name = 'accounts/activity/activity_settings.html'
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['object_type'] = list(self.request.user \
-            .subscription_set.values_list('object_type', flat=True))
+        initial['object_type'] = 
+            list(self.request.user.subscription_set.values_list(
+                'object_type', 
+                flat=True))
         return initial
 
     def get_form_kwargs(self):
@@ -368,15 +365,20 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        course_ids = self.request.user.subscription_set \
-            .filter(object_type=ContentType.objects.get_for_model(Course)) \
-                .values_list('object_id', flat=True)
+        course_ids = self.request.user.subscription_set.filter(
+            object_type=
+                ContentType.objects.get_for_model(Course))
+                    .values_list('object_id', flat=True)
         context['all_courses'] = Course.objects.all()
-        context['courses'] = Course.objects.filter(id__in=course_ids)
-        contest_ids = self.request.user.subscription_set \
-            .filter(object_type=ContentType.objects.get_for_model(Contest)) \
-                .values_list('object_id', flat=True)
-        context['contests'] = Contest.objects.filter(id__in=contest_ids)
+        context['courses'] = 
+            Course.objects.filter(id__in=course_ids)
+        contest_ids = 
+            self.request.user.subscription_set.filter(
+                object_type=
+                    ContentType.objects.get_for_model(Contest))
+                        .values_list('object_id', flat=True)
+        context['contests'] = 
+            Contest.objects.filter(id__in=contest_ids)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -385,60 +387,64 @@ class ManageSubscriptions(LoginRequiredMixin, FormView):
             user = self.request.user
             choices = form.fields['object_type'].choices
             data = form.cleaned_data['object_type']
-            
-            user.subscription_set.filter(object_type__in=choices) \
+            user.subscription_set.filter(object_type__in=choices)
                 .exclude(object_type__in=data).delete()
-            
-            new_object_type_ids = set(map(int, data)) \
-                 - set(user.subscription_set \
-                     .values_list('object_type', flat=True))
-            new_subscriptions = (Subscription(object_type= \
-                ContentType.objects.get(id=i), user=user) 
-                    for i in new_object_type_ids)
+            new_object_type_ids = set(map(int, data)) - 
+                set(user.subscription_set
+                    .values_list('object_type', flat=True))
+            new_subscriptions = 
+                (Subscription(
+                    object_type=ContentType.objects.get(id=i), 
+                    user=user) for i in new_object_type_ids)
             Subscription.objects.bulk_create(new_subscriptions)
-
-            if not Subscription.objects \
-                .for_user_models(user, Comment, Submission).exists():
-                Subscription.objects.for_user_models(user, Course, Contest) \
-                    .delete()
-            elif not Subscription.objects \
-                .for_user_models(user, Course, Contest).exists():
+            if not Subscription.objects.for_user_models(
+                user, Comment, Submission).exists():
+                Subscription.objects.for_user_models(
+                    user, Course, Contest).delete()
+            elif not Subscription.objects.for_user_models(
+                user, Course, Contest).exists():
                 for course in Course.objects.all():
-                    Subscription.objects \
-                        .make_subscription(user, object=course, cascade=True)
-
+                    Subscription.objects.make_subscription(
+                        user, object=course, cascade=True)
             return self.form_valid(form)
         return self.form_invalid(form)
     
     def get_success_url(self):
-        return reverse('accounts:activity-settings')
-\end{verbatim}
-\subsection{Модуль статистики}
-\subsubsection{Диаграмма активности студента}
-\begin{verbatim}
+        return reverse('accounts:activity-settings')        
+        \end{verbatim}
+    }
+    \item {
+        Реализация диаграммы активности студента с помощью Chart.js:\label{code:diagram}
+        \begin{verbatim}
 const submissionsChartData = {
-    labels: [{% for item in year_month_submissions_solutions_comments %}
-        '{{ item.1 }} {{item.0}}', {% endfor %}],
+    labels: 
+        [{% for item in year_month_submissions_solutions_comments %} 
+            {% if year == 0 %} '{{ item.1 }} {{item.0}}' 
+            {% else %} '{{ item.1 }}' {% endif %}, {% endfor %}],
     datasets: [{
         label: 'Посылки',
-        backgroundColor: 'rgb(0, 123, 255)',
-        borderColor: 'rgb(0, 123, 255)',
-        data: [{% for item in year_month_submissions_solutions_comments %}
+        backgroundColor: 'rgb(91, 192, 222)',
+        borderColor: 'rgb(91, 192, 222)',
+        data: [{% for item in 
+            year_month_submissions_solutions_comments %} 
             {{ item.2 }}, {% endfor %}],
     }, {
         label: 'Решения',
-        backgroundColor: 'rgb(40, 167, 69)',
-        borderColor: 'rgb(40, 167, 69)',
-        data: [{% for item in year_month_submissions_solutions_comments %}
+        backgroundColor: 'rgb(92, 184, 92)',
+        borderColor: 'rgb(92, 184, 92)',
+        data: [{% for item in 
+            year_month_submissions_solutions_comments %} 
             {{ item.3 }}, {% endfor %}],
     }, {
         label: 'Комментарии',
-        backgroundColor: 'rgb(255, 99, 132)',
-        borderColor: 'rgb(255, 99, 132)',
-        data: [{% for item in year_month_submissions_solutions_comments %}
+        backgroundColor: 'rgb(108, 117, 125)',
+        borderColor: 'rgb(108, 117, 125)',
+        data: [{% for item in 
+            year_month_submissions_solutions_comments %} 
             {{ item.4 }}, {% endfor %}],
     }]
 };
+
 const submissionsChartConfig = {
     type: 'bar',
     data: submissionsChartData,
@@ -452,45 +458,53 @@ const submissionsChartConfig = {
         }
     }
 };
+
 var submissionsChart = new Chart(
     document.getElementById('submissionsChart'),
     submissionsChartConfig
 );
-\end{verbatim}
-\subsubsection{Подсчет точности студента}
-\begin{verbatim}
+        \end{verbatim}
+    }
+    \item {
+        Реализация метода подсчета точности студента. Данный метод является методом модели Account, соответствующей сущности <<Аккаунт>>.\label{code:accuracy}
+        \begin{verbatim}
 def course_submissions_score(self, course_id=None):
     Submission = apps.get_model('contests', 'Submission')
     Assignment = apps.get_model('contests', 'Assignment')
     submissions = Submission.objects.filter(owner=self.user)
     if course_id:
-        submissions = \
+        submissions = 
             submissions.filter(problem__contest__course=course_id)
-    problem_ids = submissions.values_list('problem', flat=True) \
+    problem_ids = submissions.values_list('problem', flat=True)
         .distinct().order_by()
     submissions_scores = []
     for problem_id in problem_ids:
-        problem_submissions = \ 
-        Submission.objects.filter(owner=self.user, problem=problem_id)
-        success_submissions = problem_submissions.filter(status='OK')
+        problem_submissions = 
+            Submission.objects.filter(owner=self.user, 
+                problem=problem_id)
+        success_submissions = 
+            problem_submissions.filter(status='OK')
         if success_submissions.exists():
-            first_success_submission = \ 
-            success_submissions.order_by('date_created')[0]
-            submissions_count = problem_submissions \
-                .filter(date_created__lte= \
+            first_success_submission = 
+                success_submissions.order_by('date_created')[0]
+            submissions_count = 
+                problem_submissions.filter(date_created__lte=
                     first_success_submission.date_created).count()
         else:
             submissions_count = problem_submissions.count() + 1
         assignment = problem_submissions.first().assignment
-        submission_limit = assignment.submission_limit \
+        submission_limit = assignment.submission_limit 
             if assignment else Assignment.DEFAULT_SUBMISSION_LIMIT
-        submissions_score = 100 \
-            / math.ceil(submissions_count / submission_limit)
+        submissions_score = 
+            100 / math.ceil(submissions_count / submission_limit)
         submissions_scores.append(submissions_score)
-    return round(mean(submissions_scores)) if submissions_scores else 0
-\end{verbatim}
-\subsection{Представление раздела помощи пользователям}
-\begin{verbatim}
+    return round(mean(submissions_scores)) 
+        if submissions_scores else 0
+        \end{verbatim}
+    }
+    \item {
+        Реализация представления раздела помощи пользователям:\label{code:support}
+        \begin{verbatim}
 class Support(LoginRequiredMixin, ListView):
     model = Question
     template_name = 'support/index.html'
@@ -498,23 +512,26 @@ class Support(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        reports = Report.objects.filter(closed=False) \
-            if self.request.user.has_perm('support.change_report') \
-                else Report.objects \
-                    .filter(Q(owner=self.request.user) & Q(closed=False))
+        reports = Report.objects.filter(closed=False) 
+            if self.request.user.has_perm('support.change_report') 
+            else Report.objects.filter(Q(owner=self.request.user) 
+                & Q(closed=False))
         context.update({
             'reports': sorted(reports, 
-                key=attrgetter('date_created'), reverse=True)
+                key=attrgetter('date_created'), 
+                reverse=True)
         })
         return context
 
     def get_queryset(self):
-        questions = Question.objects.filter(answer='') \
-            if self.request.user.has_perm('support.change_question') \
-                else Question.objects.filter(Q(is_published=True) \
-                    | Q(owner=self.request.user))[:5]
+        questions = Question.objects.filter(answer='') 
+            if self.request.user.has_perm('support.change_question') 
+            else Question.objects.filter(Q(is_published=True) 
+                | Q(owner=self.request.user))
         return questions
-\end{verbatim}
+        \end{verbatim}
+    }
+\end{enumerate}
 \newpage
 
 \section{Список использованных источников и литературы}
@@ -540,6 +557,9 @@ class Support(LoginRequiredMixin, ListView):
     \bibitem{python}
     Документация языка Python\\
     \url{https://docs.python.org/3}
+    \bibitem{js}
+    Документация языка JavaScript\\
+    \url{https://developer.mozilla.org/en-US/docs/Web/JavaScript}
     \bibitem{chartjs}
     Документация инструмента Chart.js\\
     \url{https://www.chartjs.org/docs/latest}
